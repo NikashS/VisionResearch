@@ -13,12 +13,15 @@ import urllib.request
 sys.path.append(os.getcwd() + '/..')
 from CLIP.simple_tokenizer import SimpleTokenizer
 
-# Load the model
+# Load the models
 device = "cuda" if torch.cuda.is_available() else "cpu"
-model = torch.jit.load("clip_model.pt").cuda().eval()
-input_resolution = model.input_resolution.item()
-context_length = model.context_length.item()
-vocab_size = model.vocab_size.item()
+clip_model = torch.jit.load("clip_model.pt").cuda().eval()
+resnet_model = torch.jit.load("resnet_model.pt").cuda().eval()
+
+# CLIP ViT and ResNet both have the same below attributes
+input_resolution = clip_model.input_resolution.item()
+context_length = clip_model.context_length.item()
+vocab_size = clip_model.vocab_size.item()
 
 # Define image preprocessing method
 preprocess = Compose([
@@ -38,7 +41,7 @@ def tokenize(text: str, context_length: int = 77):
         result[i, :len(tokens)] = torch.tensor(tokens)
     return result
 
-def find_clip_accuracies(use_short_labels=False, use_hyponyms=False):
+def find_clip_accuracies(use_short_labels=False, use_hyponyms=False, use_resnet=False):
     wn_to_labels = wnid_to_short_labels if use_short_labels else wnid_to_labels
     wn_to_hyponyms = wnid_to_hyponyms
 
@@ -50,7 +53,7 @@ def find_clip_accuracies(use_short_labels=False, use_hyponyms=False):
     ]).to(device)
 
     with torch.no_grad():
-        text_features = model.encode_text(text_inputs)
+        text_features = resnet_model.encode_text(text_inputs) if use_resnet else clip_model.encode_text(text_inputs)
     text_features /= text_features.norm(dim=-1, keepdim=True)
 
     top1 = 0
@@ -73,7 +76,7 @@ def find_clip_accuracies(use_short_labels=False, use_hyponyms=False):
 
         # Encode images and evaluate similarities in batch sizes of 50
         with torch.no_grad():
-            image_features = model.encode_image(images)
+            image_features = resnet_model.encode_image(images) if use_resnet else clip_model.encode_image(images)
         image_features /= image_features.norm(dim=-1, keepdim=True)
         similarity = (100.0 * image_features @ text_features.T).softmax(dim=-1)
         _, indices = similarity.topk(5)
@@ -91,14 +94,14 @@ def find_clip_accuracies(use_short_labels=False, use_hyponyms=False):
     print (f'Top 5 accuracy: {100.0 * top5 / 50000:.2f}%')
     print ()
 
-print (f'Short class descriptions')
-find_clip_accuracies(use_short_labels=True)
-
-print (f'Full class descriptions')
+print (f'CLIP with simple class labels (Paper: 63.2%)')
 find_clip_accuracies()
 
-print (f'Short class descriptions with hyponyms')
-find_clip_accuracies(use_short_labels=True, use_hyponyms=True)
-
-print (f'Full class descriptions with hyponyms')
+print (f'CLIP with class labels and hyponyms')
 find_clip_accuracies(use_hyponyms=True)
+
+print (f'ResNet50 with simple class labels (Paper: 59.6%)')
+find_clip_accuracies(use_resnet=True)
+
+print (f'ResNet50 with class labels and hyponyms')
+find_clip_accuracies(use_hyponyms=True, use_resnet=True)
