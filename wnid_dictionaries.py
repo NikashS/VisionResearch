@@ -2004,8 +2004,8 @@ wnid_to_hyponyms = {
     "n02095570": "wirehair, wirehaired terrier, wire-haired terrier"
 }
 
-wnid_to_short_labels = wnid_to_labels
-wnid_to_short_hyponyms = wnid_to_hyponyms
+wnid_to_short_labels = wnid_to_labels.copy()
+wnid_to_short_hyponyms = wnid_to_hyponyms.copy()
 for wnid in wnid_to_labels:
     if ',' in wnid_to_labels[wnid]:
         wnid_to_short_labels[wnid] = wnid_to_labels[wnid][:wnid_to_labels[wnid].find(',')]

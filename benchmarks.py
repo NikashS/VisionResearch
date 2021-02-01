@@ -41,13 +41,12 @@ def tokenize(text: str, context_length: int = 77):
         result[i, :len(tokens)] = torch.tensor(tokens)
     return result
 
-def find_clip_accuracies(use_short_labels=False, use_hyponyms=False, use_resnet=False):
+def find_clip_accuracies(use_hyponyms=False, use_resnet=False, use_short_labels=False):
     wn_to_labels = wnid_to_short_labels if use_short_labels else wnid_to_labels
     wn_to_hyponyms = wnid_to_hyponyms
-
-    # Tokenize ImageNet class labels (using hyponyms if specified)
+    
     text_inputs = torch.cat([
-        tokenize(f"a photo of a{wn_to_labels[wnid]}, a type of {(wn_to_hyponyms[wnid])}")
+        tokenize(f"a photo of a {wn_to_labels[wnid]}, a type of {wn_to_hyponyms[wnid]}")
         if use_hyponyms else
         tokenize(f"a photo of a {wn_to_labels[wnid]}") for wnid in wn_to_labels
     ]).to(device)
@@ -61,7 +60,6 @@ def find_clip_accuracies(use_short_labels=False, use_hyponyms=False, use_resnet=
     directory = r'/localtmp/data/imagenet256/val/'
 
     # Iterate over every validation class
-    count = 0
     for wnid in os.listdir(directory):
         subdirectory = directory + wnid + r'/'
         images = []
