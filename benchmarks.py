@@ -11,7 +11,7 @@ from torchvision.transforms import Compose, Resize, CenterCrop, ToTensor, Normal
 import urllib.request
 
 sys.path.append(os.getcwd() + '/..')
-from CLIP.simple_tokenizer import SimpleTokenizer
+from CLIP.clip.simple_tokenizer import SimpleTokenizer
 
 # Load the models
 device = "cuda" if torch.cuda.is_available() else "cpu"
