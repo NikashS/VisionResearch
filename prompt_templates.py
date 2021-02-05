@@ -1,4 +1,4 @@
-imagenet_templates_openai = [
+prompt_templates_openai = [
     'a bad photo of a {}.',
     'a photo of many {}.',
     'a sculpture of a {}.',
@@ -79,4 +79,14 @@ imagenet_templates_openai = [
     'a photo of a cool {}.',
     'a photo of a small {}.',
     'a tattoo of the {}.',
+]
+
+subset_prompt_templates_openai = [
+    'itap of a {}.',
+    'a bad photo of the {}.',
+    'a origami {}.',
+    'a photo of the large {}.',
+    'a {} in a video game.',
+    'art of the {}.',
+    'a photo of the small {}.',
 ]
