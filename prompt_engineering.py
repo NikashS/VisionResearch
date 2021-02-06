@@ -26,7 +26,7 @@ def find_clip_accuracies(use_resnet=False, use_prompts='yes', ensemble_prompts=T
     def zeroshot_classifier(classes):
         with torch.no_grad():
             zeroshot_weights = []
-            for wnid in tqdm(classes, desc='zeroshot classifier', leave=False):
+            for wnid in tqdm(classes, desc='generate text classifier', leave=False):
                 label = f'{classes[wnid]} (a type of {wnid_to_hyponyms[wnid]})' if use_hyponyms else classes[wnid]
                 if use_prompts=='yes':
                     texts = [template.format(label) for template in prompt_templates_openai]
@@ -54,7 +54,7 @@ def find_clip_accuracies(use_resnet=False, use_prompts='yes', ensemble_prompts=T
     directory = r'/localtmp/data/imagenet256/val/'
 
     # Iterate over every validation class
-    for wnid in tqdm(os.listdir(directory), desc='zeroshot classifier', leave=False):
+    for wnid in tqdm(os.listdir(directory), desc='find zeroshot accuracy', leave=False):
         subdirectory = directory + wnid + r'/'
         images = []
 
@@ -89,7 +89,8 @@ def find_clip_accuracies(use_resnet=False, use_prompts='yes', ensemble_prompts=T
 
     print ('-------------------------------------')
     print (f'Top 1 accuracy: {100.0 * top1 / 50000:.2f}%')
-    print (f'Top 5 accuracy: {100.0 * top5 / 50000:.2f}%') if not ensemble_prompts
+    if use_prompts=="no" or ensemble_prompts:
+        print (f'Top 5 accuracy: {100.0 * top5 / 50000:.2f}%')
     print ()
 
 print (f'CLIP ViT with prompt templates (Paper: 63.2%)')
