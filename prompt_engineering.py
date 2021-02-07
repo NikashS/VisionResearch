@@ -9,7 +9,7 @@ from tqdm import tqdm
 sys.path.append(os.getcwd() + '/..')
 from CLIP import clip
 from prompt_templates import prompt_templates_openai, subset_prompt_templates_openai
-from wnid_dictionaries import wnid_to_labels_openai, wnid_to_hyponyms
+from wnid_dictionaries import wnid_to_labels, wnid_to_labels_openai, wnid_to_short_hyponyms
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 clip_model, preprocess = clip.load('ViT-B/32')
@@ -20,14 +20,20 @@ input_resolution = clip_model.input_resolution.item()
 context_length = clip_model.context_length.item()
 vocab_size = clip_model.vocab_size.item()
 
-def find_clip_accuracies(use_resnet=False, use_prompts='yes', ensemble_prompts=True, use_hyponyms=False):
+def find_clip_accuracies(
+    use_resnet=False,
+    use_prompts='yes',
+    ensemble_prompts=True,
+    use_hyponyms=False,
+    use_openai_imagenet_classes=True,
+):
 
     # Encode text and create zero-shot classifier with prompt templates
     def zeroshot_classifier(classes):
         with torch.no_grad():
             zeroshot_weights = []
             for wnid in tqdm(classes, desc='generate text classifier', leave=False):
-                label = f'{classes[wnid]} (a type of {wnid_to_hyponyms[wnid]})' if use_hyponyms else classes[wnid]
+                label = f'{classes[wnid]} (a type of {wnid_to_short_hyponyms[wnid]})' if use_hyponyms else classes[wnid]
                 if use_prompts=='yes':
                     texts = [template.format(label) for template in prompt_templates_openai]
                 elif use_prompts=='subset':
@@ -47,7 +53,10 @@ def find_clip_accuracies(use_resnet=False, use_prompts='yes', ensemble_prompts=T
             zeroshot_weights = torch.stack(zeroshot_weights, dim=1).cuda()
         return zeroshot_weights
 
-    zeroshot_weights = zeroshot_classifier(wnid_to_labels_openai)
+    if use_openai_imagenet_classes:
+        zeroshot_weights = zeroshot_classifier(wnid_to_labels_openai)
+    else:
+        zeroshot_weights = zeroshot_classifier(wnid_to_labels)
 
     top1 = 0
     top5 = 0
@@ -94,50 +103,38 @@ def find_clip_accuracies(use_resnet=False, use_prompts='yes', ensemble_prompts=T
     print ()
 
 print (f'CLIP ViT with prompt templates (Paper: 63.2%)')
-find_clip_accuracies(use_resnet=False, use_prompts='yes')
-
-print (f'ResNet with prompt templates (Paper: 59.6%)')
-find_clip_accuracies(use_resnet=True, use_prompts='yes')
+find_clip_accuracies(use_prompts='yes')
 
 print (f'CLIP ViT without prompt templates')
-find_clip_accuracies(use_resnet=False, use_prompts='no')
-
-print (f'ResNet without prompt templates')
-find_clip_accuracies(use_resnet=True, use_prompts='no')
+find_clip_accuracies(use_prompts='no')
 
 print (f'CLIP ViT with subset of prompt templates')
-find_clip_accuracies(use_resnet=False, use_prompts='subset')
-
-print (f'ResNet with subset of prompt templates')
-find_clip_accuracies(use_resnet=True, use_prompts='subset')
-
-print (f'CLIP ViT with best (not ensembled) prompt template')
-find_clip_accuracies(use_resnet=False, use_prompts='yes', ensemble_prompts=False)
-
-print (f'ResNet with best (not ensembled) prompt template')
-find_clip_accuracies(use_resnet=True, use_prompts='yes', ensemble_prompts=False)
-
-print (f'CLIP ViT with best (not ensembled) prompt template with subset')
-find_clip_accuracies(use_resnet=False, use_prompts='subset', ensemble_prompts=False)
-
-print (f'ResNet with best (not ensembled) prompt template with subset')
-find_clip_accuracies(use_resnet=True, use_prompts='subset', ensemble_prompts=False)
+find_clip_accuracies(use_prompts='subset')
 
 print (f'CLIP ViT with prompt templates and with hyponyms')
-find_clip_accuracies(use_resnet=False, use_prompts='yes', use_hyponyms=True)
-
-print (f'ResNet with prompt templates and with hyponyms')
-find_clip_accuracies(use_resnet=True, use_prompts='yes', use_hyponyms=True)
+find_clip_accuracies(use_prompts='yes', use_hyponyms=True)
 
 print (f'CLIP ViT without prompt templates and with hyponyms')
-find_clip_accuracies(use_resnet=False, use_prompts='no', use_hyponyms=True)
-
-print (f'ResNet without prompt templates and with hyponyms')
-find_clip_accuracies(use_resnet=True, use_prompts='no', use_hyponyms=True)
+find_clip_accuracies(use_prompts='no', use_hyponyms=True)
 
 print (f'CLIP ViT with subset prompt templates and with hyponyms')
-find_clip_accuracies(use_resnet=False, use_prompts='subset', use_hyponyms=True)
+find_clip_accuracies(use_prompts='subset', use_hyponyms=True)
 
-print (f'ResNet with subset prompt templates and with hyponyms')
-find_clip_accuracies(use_resnet=True, use_prompts='subset', use_hyponyms=True)
+print (f'CLIP ViT with prompt templates (standard ImageNet classes)')
+find_clip_accuracies(use_prompts='yes', use_openai_imagenet_classes=True)
+
+print (f'CLIP ViT without prompt templates (standard ImageNet classes)')
+find_clip_accuracies(use_prompts='no', use_openai_imagenet_classes=True)
+
+print (f'CLIP ViT with subset of prompt templates (standard ImageNet classes)')
+find_clip_accuracies(use_prompts='subset', use_openai_imagenet_classes=True)
+
+print (f'CLIP ViT with prompt templates and with hyponyms (standard ImageNet classes)')
+find_clip_accuracies(use_prompts='yes', use_hyponyms=True, use_openai_imagenet_classes=True)
+
+print (f'CLIP ViT without prompt templates and with hyponyms (standard ImageNet classes)')
+find_clip_accuracies(use_prompts='no', use_hyponyms=True, use_openai_imagenet_classes=True)
+
+print (f'CLIP ViT with subset prompt templates and with hyponyms (standard ImageNet classes)')
+find_clip_accuracies(use_prompts='subset', use_hyponyms=True, use_openai_imagenet_classes=True)
 
