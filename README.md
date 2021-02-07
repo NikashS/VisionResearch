@@ -12,7 +12,7 @@ To improve model loading performance, optionally download and load the CLIP ViT 
 
 ## Overview of repository
 
-`prompt_engineering.py` and `first_benchmarks.py` are the main python scripts.
+`prompt_engineering.py` (benchmarks of CLIP zero-shot learning with prompt engineering and hyponyms) and `linear_probe_prompt_engineering.py` are the main python scripts.
 
 `generate_dictionaries.py` is a one-time script to produce the dictionaries in `wnid_dictionaries.py`.
 

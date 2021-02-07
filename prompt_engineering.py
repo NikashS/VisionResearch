@@ -1,6 +1,5 @@
 import numpy as np
 import os
-import pickle
 from PIL import Image
 import sys
 import torch
@@ -15,11 +14,6 @@ device = 'cuda' if torch.cuda.is_available() else 'cpu'
 clip_model, preprocess = clip.load('ViT-B/32')
 resnet_model, _ = clip.load('RN50')
 
-# Model parameters of ViT and RN are the same
-input_resolution = clip_model.input_resolution.item()
-context_length = clip_model.context_length.item()
-vocab_size = clip_model.vocab_size.item()
-
 def find_clip_accuracies(
     use_resnet=False,
     use_prompts='yes',
@@ -27,7 +21,6 @@ def find_clip_accuracies(
     use_hyponyms=False,
     use_openai_imagenet_classes=True,
 ):
-
     # Encode text and create zero-shot classifier with prompt templates
     def zeroshot_classifier(classes):
         with torch.no_grad():
@@ -102,39 +95,8 @@ def find_clip_accuracies(
         print (f'Top 5 accuracy: {100.0 * top5 / 50000:.2f}%')
     print ()
 
-print (f'CLIP ViT with prompt templates (Paper: 63.2%)')
-find_clip_accuracies(use_prompts='yes')
-
-print (f'CLIP ViT without prompt templates')
-find_clip_accuracies(use_prompts='no')
-
 print (f'CLIP ViT with subset of prompt templates')
 find_clip_accuracies(use_prompts='subset')
 
-print (f'CLIP ViT with prompt templates and with hyponyms')
-find_clip_accuracies(use_prompts='yes', use_hyponyms=True)
-
-print (f'CLIP ViT without prompt templates and with hyponyms')
-find_clip_accuracies(use_prompts='no', use_hyponyms=True)
-
 print (f'CLIP ViT with subset prompt templates and with hyponyms')
 find_clip_accuracies(use_prompts='subset', use_hyponyms=True)
-
-print (f'CLIP ViT with prompt templates (standard ImageNet classes)')
-find_clip_accuracies(use_prompts='yes', use_openai_imagenet_classes=True)
-
-print (f'CLIP ViT without prompt templates (standard ImageNet classes)')
-find_clip_accuracies(use_prompts='no', use_openai_imagenet_classes=True)
-
-print (f'CLIP ViT with subset of prompt templates (standard ImageNet classes)')
-find_clip_accuracies(use_prompts='subset', use_openai_imagenet_classes=True)
-
-print (f'CLIP ViT with prompt templates and with hyponyms (standard ImageNet classes)')
-find_clip_accuracies(use_prompts='yes', use_hyponyms=True, use_openai_imagenet_classes=True)
-
-print (f'CLIP ViT without prompt templates and with hyponyms (standard ImageNet classes)')
-find_clip_accuracies(use_prompts='no', use_hyponyms=True, use_openai_imagenet_classes=True)
-
-print (f'CLIP ViT with subset prompt templates and with hyponyms (standard ImageNet classes)')
-find_clip_accuracies(use_prompts='subset', use_hyponyms=True, use_openai_imagenet_classes=True)
-
