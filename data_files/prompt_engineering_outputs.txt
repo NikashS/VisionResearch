@@ -1,0 +1,159 @@
+starting...
+CLIP ViT with best (not ensembled) prompt template
+----------------------------------------
+Top 1 accuracy: 62.59%
+
+CLIP ViT with best (not ensembled) prompt template with subset
+----------------------------------------
+Top 1 accuracy: 62.18%
+
+CLIP ViT with prompt templates
+----------------------------------------
+Top 1 accuracy: 63.97%
+Top 5 accuracy: 88.91%
+
+CLIP ViT with prompt templates and with ImageNet hyponyms (using  (a type of {}))
+----------------------------------------
+Top 1 accuracy: 63.91%
+Top 5 accuracy: 88.49%
+
+CLIP ViT with prompt templates and with common hierarchal hyponyms (using  (a type of {}))
+----------------------------------------
+Top 1 accuracy: 63.99%
+Top 5 accuracy: 88.54%
+
+CLIP ViT with prompt templates and with human generated hyponyms (using  (a type of {}))
+----------------------------------------
+Top 1 accuracy: 64.01%
+Top 5 accuracy: 88.55%
+
+CLIP ViT with prompt templates and with ImageNet hyponyms (using , a type of {})
+----------------------------------------
+Top 1 accuracy: 63.66%
+Top 5 accuracy: 88.44%
+
+CLIP ViT with prompt templates and with common hierarchal hyponyms (using , a type of {})
+----------------------------------------
+Top 1 accuracy: 63.67%
+Top 5 accuracy: 88.42%
+
+CLIP ViT with prompt templates and with human generated hyponyms (using , a type of {})
+----------------------------------------
+Top 1 accuracy: 63.69%
+Top 5 accuracy: 88.44%
+
+CLIP ViT with prompt templates and with ImageNet hyponyms (using , which is a type of {})
+----------------------------------------
+Top 1 accuracy: 64.27%
+Top 5 accuracy: 88.86%
+
+CLIP ViT with prompt templates and with common hierarchal hyponyms (using , which is a type of {})
+----------------------------------------
+Top 1 accuracy: 64.22%
+Top 5 accuracy: 88.78%
+
+CLIP ViT with prompt templates and with human generated hyponyms (using , which is a type of {})
+----------------------------------------
+Top 1 accuracy: 64.23%
+Top 5 accuracy: 88.79%
+
+CLIP ViT with subset of prompt templates
+----------------------------------------
+Top 1 accuracy: 64.27%
+Top 5 accuracy: 89.22%
+
+CLIP ViT with subset of prompt templates and with ImageNet hyponyms (using  (a type of {}))
+----------------------------------------
+Top 1 accuracy: 64.04%
+Top 5 accuracy: 88.58%
+
+CLIP ViT with subset of prompt templates and with common hierarchal hyponyms (using  (a type of {}))
+----------------------------------------
+Top 1 accuracy: 64.08%
+Top 5 accuracy: 88.66%
+
+CLIP ViT with subset of prompt templates and with human generated hyponyms (using  (a type of {}))
+----------------------------------------
+Top 1 accuracy: 64.09%
+Top 5 accuracy: 88.69%
+
+CLIP ViT with subset of prompt templates and with ImageNet hyponyms (using , a type of {})
+----------------------------------------
+Top 1 accuracy: 63.96%
+Top 5 accuracy: 88.53%
+
+CLIP ViT with subset of prompt templates and with common hierarchal hyponyms (using , a type of {})
+----------------------------------------
+Top 1 accuracy: 63.97%
+Top 5 accuracy: 88.59%
+
+CLIP ViT with subset of prompt templates and with human generated hyponyms (using , a type of {})
+----------------------------------------
+Top 1 accuracy: 64.01%
+Top 5 accuracy: 88.61%
+
+CLIP ViT with subset of prompt templates and with ImageNet hyponyms (using , which is a type of {})
+----------------------------------------
+Top 1 accuracy: 64.46%
+Top 5 accuracy: 88.89%
+
+CLIP ViT with subset of prompt templates and with common hierarchal hyponyms (using , which is a type of {})
+----------------------------------------
+Top 1 accuracy: 64.48%
+Top 5 accuracy: 88.98%
+
+CLIP ViT with subset of prompt templates and with human generated hyponyms (using , which is a type of {})
+----------------------------------------
+Top 1 accuracy: 64.51%
+Top 5 accuracy: 88.98%
+
+CLIP ViT without prompt templates
+----------------------------------------
+Top 1 accuracy: 62.58%
+Top 5 accuracy: 87.78%
+
+CLIP ViT without prompt templates and with ImageNet hyponyms (using  (a type of {}))
+----------------------------------------
+Top 1 accuracy: 63.21%
+Top 5 accuracy: 88.02%
+
+CLIP ViT without prompt templates and with common hierarchal hyponyms (using  (a type of {}))
+----------------------------------------
+Top 1 accuracy: 63.08%
+Top 5 accuracy: 87.96%
+
+CLIP ViT without prompt templates and with human generated hyponyms (using  (a type of {}))
+----------------------------------------
+Top 1 accuracy: 63.12%
+Top 5 accuracy: 87.99%
+
+CLIP ViT without prompt templates and with ImageNet hyponyms (using , a type of {})
+----------------------------------------
+Top 1 accuracy: 63.05%
+Top 5 accuracy: 87.92%
+
+CLIP ViT without prompt templates and with common hierarchal hyponyms (using , a type of {})
+----------------------------------------
+Top 1 accuracy: 62.85%
+Top 5 accuracy: 87.78%
+
+CLIP ViT without prompt templates and with human generated hyponyms (using , a type of {})
+----------------------------------------
+Top 1 accuracy: 62.87%
+Top 5 accuracy: 87.81%
+
+CLIP ViT without prompt templates and with ImageNet hyponyms (using , which is a type of {})
+----------------------------------------
+Top 1 accuracy: 63.65%
+Top 5 accuracy: 88.38%
+
+CLIP ViT without prompt templates and with common hierarchal hyponyms (using , which is a type of {})
+----------------------------------------
+Top 1 accuracy: 63.38%
+Top 5 accuracy: 88.25%
+
+CLIP ViT without prompt templates and with human generated hyponyms (using , which is a type of {})
+----------------------------------------
+Top 1 accuracy: 63.41%
+Top 5 accuracy: 88.26%
+

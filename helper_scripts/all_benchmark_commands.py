@@ -39,3 +39,21 @@ find_clip_accuracies(use_prompts='no', use_hyponyms=True, use_openai_imagenet_cl
 
 print (f'CLIP ViT with subset prompt templates and with hyponyms (standard ImageNet classes)')
 find_clip_accuracies(use_prompts='subset', use_hyponyms=True, use_openai_imagenet_classes=True)
+
+print (f'CLIP ViT with prompt templates and with common hierarchal hyponyms')
+find_clip_accuracies(use_prompts='yes', use_hyponyms=True, hyponyms_dict=common_hyponyms)
+
+print (f'CLIP ViT without prompt templates and with common hierarchal hyponyms')
+find_clip_accuracies(use_prompts='no', use_hyponyms=True, hyponyms_dict=common_hyponyms)
+
+print (f'CLIP ViT with subset prompt templates and with common hierarchal hyponyms')
+find_clip_accuracies(use_prompts='subset', use_hyponyms=True, hyponyms_dict=common_hyponyms)
+
+print (f'CLIP ViT with prompt templates and with human generated hyponyms')
+find_clip_accuracies(use_prompts='yes', use_hyponyms=True, hyponyms_dict=common_hyponyms_human)
+
+print (f'CLIP ViT without prompt templates and with human generated hyponyms')
+find_clip_accuracies(use_prompts='no', use_hyponyms=True, hyponyms_dict=common_hyponyms_human)
+
+print (f'CLIP ViT with subset prompt templates and with human generated hyponyms')
+find_clip_accuracies(use_prompts='subset', use_hyponyms=True, hyponyms_dict=common_hyponyms_human)
