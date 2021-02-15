@@ -25,19 +25,20 @@ def find_clip_accuracies(
     hyponyms_dict=wnid_to_short_hyponyms,
     hyponym_template=', a type of {}',
 ):
+    if use_prompts=='yes':
+        prompt_templates = prompt_templates_openai
+    elif use_prompts=='subset':
+        prompt_templates = subset_prompt_templates_openai
+    elif use_prompts=='no':
+        prompt_templates = ['a photo of a {}.']
     # Encode text and create zero-shot classifier with prompt templates
     def zeroshot_classifier(classes):
         with torch.no_grad():
             zeroshot_weights = []
-            # for wnid in tqdm(classes, desc='generate text classifier', leave=False):
+            """ for wnid in tqdm(classes, desc='generate text classifier', leave=False): """
             for wnid in classes:
                 label = f'{classes[wnid]}{hyponym_template.format(hyponyms_dict[wnid])}' if use_hyponyms else classes[wnid]
-                if use_prompts=='yes':
-                    texts = [template.format(label+' ') if template[-2]!='}' else template.format(label) for template in prompt_templates_openai]
-                elif use_prompts=='subset':
-                    texts = [template.format(label+' ') if template[-2]!='}' else template.format(label) for template in subset_prompt_templates_openai]
-                elif use_prompts=='no':
-                    texts = f'a photo of a {label}.'
+                texts = [template.format(label+' ') if template[-2] != '}' else template.format(label) for template in prompt_templates]
                 texts = clip.tokenize(texts).cuda()
                 class_embeddings = resnet_model.encode_text(texts) if use_resnet else clip_model.encode_text(texts)
                 class_embeddings /= class_embeddings.norm(dim=-1, keepdim=True)
@@ -61,8 +62,8 @@ def find_clip_accuracies(
     directory = r'/localtmp/data/imagenet256/train/'
 
     # Iterate over first 50 images in each train class
-    # for wnid in tqdm(os.listdir(directory), desc='find zeroshot accuracy', leave=False):
-    for wnid in os.listdir(directory):
+    for wnid in tqdm(os.listdir(directory), desc='find zeroshot accuracy', leave=False):
+    # for wnid in os.listdir(directory):
         subdirectory = directory + wnid + r'/'
         images = []
 
@@ -83,12 +84,7 @@ def find_clip_accuracies(
 
         # Count top 1 and top 5 accuracies
         for i in range(indices.shape[0]):
-            divisor = 1
-            if not ensemble_prompts:
-                if use_prompts=='yes':
-                    divisor = len(prompt_templates_openai)
-                elif use_prompts=='subset':
-                    divisor = len(subset_prompt_templates_openai)
+            divisor = 1 if ensemble_prompts else len(prompt_templates)
             predictions = [list(wnid_to_labels_openai.values())[index // divisor] for index in indices[i]]
             if wnid_to_labels_openai[wnid] == predictions[0]:
                 top1 += 1
@@ -101,19 +97,13 @@ def find_clip_accuracies(
         print (f'Top 5 accuracy: {100.0 * top5 / 50000:.2f}%')
     print ()
 
-print (f'CLIP ViT with best (not ensembled) prompt template')
-find_clip_accuracies(use_prompts='yes', ensemble_prompts=False)
-
-print (f'CLIP ViT with best (not ensembled) prompt template with subset')
-find_clip_accuracies(use_prompts='subset', ensemble_prompts=False)
-
 prompts_options = [('yes', 'with'), ('subset', 'with subset of'), ('no', 'without')]
 for prompts_option, benchmark_title in prompts_options:
 
     print (f'CLIP ViT {benchmark_title} prompt templates')
     find_clip_accuracies(use_prompts=prompts_option)
 
-    hyponym_templates = [' (a type of {})', ', a type of {}', ', which is a type of {}']
+    hyponym_templates = [', a type of {}', ', which is a type of {}']
     for hyponym_template in hyponym_templates:
 
         print (f'CLIP ViT {benchmark_title} prompt templates and with ImageNet hyponyms (using {hyponym_template})')
@@ -124,3 +114,9 @@ for prompts_option, benchmark_title in prompts_options:
 
         print (f'CLIP ViT {benchmark_title} prompt templates and with human generated hyponyms (using {hyponym_template})')
         find_clip_accuracies(use_prompts=prompts_option, use_hyponyms=True, hyponyms_dict=common_hyponyms_human, hyponym_template=hyponym_template)
+
+print (f'CLIP ViT with best (not ensembled) prompt template')
+find_clip_accuracies(use_prompts='yes', ensemble_prompts=False)
+
+print (f'CLIP ViT with best (not ensembled) prompt template with subset')
+find_clip_accuracies(use_prompts='subset', ensemble_prompts=False)
