@@ -1,59 +1,23 @@
-print (f'CLIP ViT with prompt templates (Paper: 63.2%)')
-find_clip_accuracies(use_prompts='yes')
+prompts_options = [('yes', 'with'), ('subset', 'with subset of'), ('no', 'without')]
+for prompts_option, benchmark_title in prompts_options:
 
-print (f'CLIP ViT without prompt templates')
-find_clip_accuracies(use_prompts='no')
+    print (f'CLIP ViT {benchmark_title} prompt templates')
+    find_clip_accuracies(use_prompts=prompts_option)
 
-print (f'CLIP ViT with subset of prompt templates')
-find_clip_accuracies(use_prompts='subset')
+    hyponym_templates = [', a type of {}', ', which is a type of {}']
+    for hyponym_template in hyponym_templates:
+
+        print (f'CLIP ViT {benchmark_title} prompt templates and with ImageNet hyponyms (using {hyponym_template})')
+        find_clip_accuracies(use_prompts=prompts_option, use_hyponyms=True, hyponym_template=hyponym_template)
+
+        print (f'CLIP ViT {benchmark_title} prompt templates and with common hierarchal hyponyms (using {hyponym_template})')
+        find_clip_accuracies(use_prompts=prompts_option, use_hyponyms=True, hyponyms_dict=common_hyponyms, hyponym_template=hyponym_template)
+
+        print (f'CLIP ViT {benchmark_title} prompt templates and with human generated hyponyms (using {hyponym_template})')
+        find_clip_accuracies(use_prompts=prompts_option, use_hyponyms=True, hyponyms_dict=common_hyponyms_human, hyponym_template=hyponym_template)
 
 print (f'CLIP ViT with best (not ensembled) prompt template')
 find_clip_accuracies(use_prompts='yes', ensemble_prompts=False)
 
 print (f'CLIP ViT with best (not ensembled) prompt template with subset')
 find_clip_accuracies(use_prompts='subset', ensemble_prompts=False)
-
-print (f'CLIP ViT with prompt templates and with hyponyms')
-find_clip_accuracies(use_prompts='yes', use_hyponyms=True)
-
-print (f'CLIP ViT without prompt templates and with hyponyms')
-find_clip_accuracies(use_prompts='no', use_hyponyms=True)
-
-print (f'CLIP ViT with subset prompt templates and with hyponyms')
-find_clip_accuracies(use_prompts='subset', use_hyponyms=True)
-
-print (f'CLIP ViT with prompt templates (standard ImageNet classes)')
-find_clip_accuracies(use_prompts='yes', use_openai_imagenet_classes=True)
-
-print (f'CLIP ViT without prompt templates (standard ImageNet classes)')
-find_clip_accuracies(use_prompts='no', use_openai_imagenet_classes=True)
-
-print (f'CLIP ViT with subset of prompt templates (standard ImageNet classes)')
-find_clip_accuracies(use_prompts='subset', use_openai_imagenet_classes=True)
-
-print (f'CLIP ViT with prompt templates and with hyponyms (standard ImageNet classes)')
-find_clip_accuracies(use_prompts='yes', use_hyponyms=True, use_openai_imagenet_classes=True)
-
-print (f'CLIP ViT without prompt templates and with hyponyms (standard ImageNet classes)')
-find_clip_accuracies(use_prompts='no', use_hyponyms=True, use_openai_imagenet_classes=True)
-
-print (f'CLIP ViT with subset prompt templates and with hyponyms (standard ImageNet classes)')
-find_clip_accuracies(use_prompts='subset', use_hyponyms=True, use_openai_imagenet_classes=True)
-
-print (f'CLIP ViT with prompt templates and with common hierarchal hyponyms')
-find_clip_accuracies(use_prompts='yes', use_hyponyms=True, hyponyms_dict=common_hyponyms)
-
-print (f'CLIP ViT without prompt templates and with common hierarchal hyponyms')
-find_clip_accuracies(use_prompts='no', use_hyponyms=True, hyponyms_dict=common_hyponyms)
-
-print (f'CLIP ViT with subset prompt templates and with common hierarchal hyponyms')
-find_clip_accuracies(use_prompts='subset', use_hyponyms=True, hyponyms_dict=common_hyponyms)
-
-print (f'CLIP ViT with prompt templates and with human generated hyponyms')
-find_clip_accuracies(use_prompts='yes', use_hyponyms=True, hyponyms_dict=common_hyponyms_human)
-
-print (f'CLIP ViT without prompt templates and with human generated hyponyms')
-find_clip_accuracies(use_prompts='no', use_hyponyms=True, hyponyms_dict=common_hyponyms_human)
-
-print (f'CLIP ViT with subset prompt templates and with human generated hyponyms')
-find_clip_accuracies(use_prompts='subset', use_hyponyms=True, hyponyms_dict=common_hyponyms_human)
