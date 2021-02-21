@@ -90,3 +90,14 @@ subset_prompt_templates_openai = [
     'art of the {}.',
     'a photo of the small {}.',
 ]
+
+top_subset_prompt_templates = [
+    'a cropped photo of the {}.',
+    'a photo of the large {}.',
+    "a low resolution photo of a {}.",
+    "a photo of the small {}.",
+    "a close-up photo of the {}.",
+    "a photo of many {}.",
+    "a photo of the clean {}.",
+     "a toy {}.",
+]
