@@ -1,22 +1,13 @@
-<!-- You must include this JavaScript file -->
 <script src="https://assets.crowd.aws/crowd-html-elements.js"></script>
 
-<!-- For the full list of available Crowd HTML Elements and their input/output documentation,
-      please refer to https://docs.aws.amazon.com/sagemaker/latest/dg/sms-ui-template-reference.html -->
-
-<!-- You must include crowd-form so that your task submits answers to MTurk -->
 <crowd-form answer-format="flatten-objects">
 
     <p>
-      <strong>Instructions: </strong>
-      When you see these images, what words or categories (comma-separated) would you use to name the object that is being shown?
+        <strong>Instructions: </strong>
+        When you see these images, what words or categories (comma-separated) would you use to name the object that is being shown?
     </p>
     <p>Start with the most relevant name. For example, if you see images of a penguin, a good response and format would be either "penguin" or "penguin, bird"</p>
 
-    <!-- Your image file URLs will be substituted for the "image_url" variable below 
-          when you publish a batch with a CSV input file containing multiple image file URLs.
-          To preview the element with an example image, try setting the src attribute to
-          "https://s3.amazonaws.com/cv-demo-images/basketball-outdoor.jpg" -->
     <div class="row" style="display:flex">
         <p><img src="${one}" style="width: 200px" /></p>
         <p><img src="${two}" style="width: 200px; margin-left: 5px" /></p>
@@ -33,19 +24,4 @@
     </div>
     <crowd-input label="Write a comma-separated list of words you would use to classify these images..." name="${wnid}" required></crowd-input>
     
-    <!--<div class="row" style="display:flex">-->
-    <!--    <p><img src="http://deep.cs.virginia.edu/data/imagenet256/train/n01440764/n01440764_172.JPEG" style="width: 200px" /></p>-->
-    <!--    <p><img src="http://deep.cs.virginia.edu/data/imagenet256/train/n01440764/n01440764_188.JPEG" style="width: 200px; margin-left: 5px" /></p>-->
-    <!--    <p><img src="http://deep.cs.virginia.edu/data/imagenet256/train/n01440764/n01440764_190.JPEG" style="width: 200px; margin-left: 5px" /></p>-->
-    <!--    <p><img src="http://deep.cs.virginia.edu/data/imagenet256/train/n01440764/n01440764_192.JPEG" style="width: 200px; margin-left: 5px" /></p>-->
-    <!--    <p><img src="http://deep.cs.virginia.edu/data/imagenet256/train/n01440764/n01440764_200.JPEG" style="width: 200px; margin-left: 5px" /></p>-->
-    <!--</div>-->
-    <!--<div class="row" style="display:flex">-->
-    <!--    <p><img src="http://deep.cs.virginia.edu/data/imagenet256/train/n01440764/n01440764_237.JPEG" style="width: 200px" /></p>-->
-    <!--    <p><img src="http://deep.cs.virginia.edu/data/imagenet256/train/n01440764/n01440764_239.JPEG" style="width: 200px; margin-left: 5px" /></p>-->
-    <!--    <p><img src="http://deep.cs.virginia.edu/data/imagenet256/train/n01440764/n01440764_261.JPEG" style="width: 200px; margin-left: 5px" /></p>-->
-    <!--    <p><img src="http://deep.cs.virginia.edu/data/imagenet256/train/n01440764/n01440764_292.JPEG" style="width: 200px; margin-left: 5px" /></p>-->
-    <!--    <p><img src="http://deep.cs.virginia.edu/data/imagenet256/train/n01440764/n01440764_297.JPEG" style="width: 200px; margin-left: 5px" /></p>-->
-    <!--</div>-->
-    <!--<crowd-input label="Write a comma-separated list of words you would use to classify these images..." name="n01440764" required></crowd-input>-->
 </crowd-form>
