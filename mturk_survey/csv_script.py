@@ -13,17 +13,25 @@ def write_csv():
     filename = '/u/lab/ns6td/VisionResearch/mturk_survey/image_urls.csv'
     with open(filename, 'w', newline='') as csvfile:
         writer = csv.writer(csvfile, delimiter=',')
-        writer.writerow(['wnid', 'name', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten'])
+        header_list = ['wnid', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten']
+        five = ['one_', 'two_', 'three_', 'four_', 'five_']
+        writer.writerow([prepend + header for prepend in five for header in header_list])
 
+        counter = 0
+        row = []
         for wnid in tqdm(wnid_to_labels_openai):
-            class_name = wnid_to_labels_openai[wnid]
+            counter += 1
             url = 'http://deep.cs.virginia.edu/data/imagenet256/train/' + wnid + '/'
             page = requests.get(url)
             tree = html.fromstring(page.content)
             picture_names = tree.xpath('//a/text()')
             urls = [url + picture_name for picture_name in picture_names[20:30]]
-            csv_data = [wnid, class_name] + urls
-            writer.writerow(csv_data)
+            csv_data = [wnid] + urls
+            row = row + csv_data
+            if counter == 5:
+                writer.writerow(row)
+                row = []
+                counter = 0
         return
 
 write_csv()
