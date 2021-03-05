@@ -10,7 +10,7 @@ print ("starting...")
 sys.path.append(os.getcwd() + '/..')
 from CLIP import clip
 from prompt_templates import prompt_templates_openai, subset_prompt_templates_openai
-from wnid_dictionaries import wnid_to_labels, wnid_to_labels_openai, wnid_to_short_hyponyms, common_hyponyms, common_hyponyms_human
+from wnid_dictionaries import wnid_to_labels, wnid_to_categories, wnid_to_labels_openai, wnid_to_short_hyponyms, common_hyponyms, common_hyponyms_human
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 clip_model, preprocess = clip.load('ViT-B/32')
@@ -97,26 +97,14 @@ def find_clip_accuracies(
         print (f'Top 5 accuracy: {100.0 * top5 / 50000:.2f}%')
     print ()
 
-prompts_options = [('yes', 'with'), ('subset', 'with subset of'), ('no', 'without')]
+prompts_options = [('subset', 'with subset of')]
 for prompts_option, benchmark_title in prompts_options:
+
+    hyponym_templates = [', which is a type of {}']
+    for hyponym_template in hyponym_templates:
+
+        print (f'CLIP ViT {benchmark_title} prompt templates and with mturk survey results (using {hyponym_template})')
+        find_clip_accuracies(use_prompts=prompts_option, use_hyponyms=True, hyponyms_dict=wnid_to_categories, hyponym_template=hyponym_template)
 
     print (f'CLIP ViT {benchmark_title} prompt templates')
     find_clip_accuracies(use_prompts=prompts_option)
-
-    hyponym_templates = [', a type of {}', ', which is a type of {}']
-    for hyponym_template in hyponym_templates:
-
-        print (f'CLIP ViT {benchmark_title} prompt templates and with ImageNet hyponyms (using {hyponym_template})')
-        find_clip_accuracies(use_prompts=prompts_option, use_hyponyms=True, hyponym_template=hyponym_template)
-
-        print (f'CLIP ViT {benchmark_title} prompt templates and with common hierarchal hyponyms (using {hyponym_template})')
-        find_clip_accuracies(use_prompts=prompts_option, use_hyponyms=True, hyponyms_dict=common_hyponyms, hyponym_template=hyponym_template)
-
-        print (f'CLIP ViT {benchmark_title} prompt templates and with human generated hyponyms (using {hyponym_template})')
-        find_clip_accuracies(use_prompts=prompts_option, use_hyponyms=True, hyponyms_dict=common_hyponyms_human, hyponym_template=hyponym_template)
-
-print (f'CLIP ViT with best (not ensembled) prompt template')
-find_clip_accuracies(use_prompts='yes', ensemble_prompts=False)
-
-print (f'CLIP ViT with best (not ensembled) prompt template with subset')
-find_clip_accuracies(use_prompts='subset', ensemble_prompts=False)
