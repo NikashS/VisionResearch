@@ -19,6 +19,7 @@ clip_model, preprocess = clip.load('ViT-B/32')
 def find_clip_accuracies(
     use_prompts='yes',
     num_attributes=0,
+    num_ensembles=1,
 ):
     if use_prompts=='yes':
         prompt_templates = prompt_templates_openai
@@ -33,13 +34,15 @@ def find_clip_accuracies(
         with torch.no_grad():
             zeroshot_weights = []
             for class_id in classes:
-                label = id_to_labels[class_id]
-                if num_attributes > 0:
-                    label += ', which ' + ', '.join(id_to_top_attributes[class_id][:num_attributes])
                 texts = []
-                for template in prompt_templates:
-                    caption = template.format(label+',') if template[-2] != '}' else template.format(label)
-                    texts.append(caption)
+                for ensemble in range(num_ensembles):
+                    label = id_to_labels[class_id]
+                    if num_attributes > 0:
+                        label += ', which ' + ', '.join(id_to_top_attributes[class_id][num_attributes*ensemble:num_attributes*(ensemble+1)])
+                    for template in prompt_templates:
+                        caption = template.format(label+',') if template[-2] != '}' else template.format(label)
+                        print (caption)
+                        texts.append(caption)
                 texts = clip.tokenize(texts).cuda()
                 class_embeddings = clip_model.encode_text(texts)
                 class_embeddings /= class_embeddings.norm(dim=-1, keepdim=True)
@@ -91,6 +94,12 @@ def find_clip_accuracies(
 
 prompts_options = [('no', 'without'), ('bird', 'with the bird')]
 for prompts_option, benchmark_title in prompts_options:
+
+    print (f'CLIP ViT with top 3 attribute and {benchmark_title} prompt templates')
+    find_clip_accuracies(use_prompts=prompts_option, num_attributes=1, num_ensembles=5)
+
+    print (f'CLIP ViT with top 3 attribute and {benchmark_title} prompt templates')
+    find_clip_accuracies(use_prompts=prompts_option, num_attributes=3, num_ensembles=5)
 
     print (f'CLIP ViT with top 3 attribute and {benchmark_title} prompt templates')
     find_clip_accuracies(use_prompts=prompts_option, num_attributes=3)
