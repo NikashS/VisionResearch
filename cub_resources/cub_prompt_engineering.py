@@ -41,7 +41,6 @@ def find_clip_accuracies(
                         label += ', which ' + ', '.join(id_to_top_attributes[class_id][num_attributes*ensemble:num_attributes*(ensemble+1)])
                     for template in prompt_templates:
                         caption = template.format(label+',') if template[-2] != '}' else template.format(label)
-                        print (caption)
                         texts.append(caption)
                 texts = clip.tokenize(texts).cuda()
                 class_embeddings = clip_model.encode_text(texts)
@@ -95,10 +94,10 @@ def find_clip_accuracies(
 prompts_options = [('no', 'without'), ('bird', 'with the bird')]
 for prompts_option, benchmark_title in prompts_options:
 
-    print (f'CLIP ViT with top 3 attribute and {benchmark_title} prompt templates')
+    print (f'CLIP ViT ensembling 5 prompts of best attribute and {benchmark_title} prompt templates')
     find_clip_accuracies(use_prompts=prompts_option, num_attributes=1, num_ensembles=5)
 
-    print (f'CLIP ViT with top 3 attribute and {benchmark_title} prompt templates')
+    print (f'CLIP ViT ensembling 5 prompts of top 3 attributes and {benchmark_title} prompt templates')
     find_clip_accuracies(use_prompts=prompts_option, num_attributes=3, num_ensembles=5)
 
     print (f'CLIP ViT with top 3 attribute and {benchmark_title} prompt templates')
