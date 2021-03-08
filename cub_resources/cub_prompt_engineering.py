@@ -11,13 +11,14 @@ sys.path.append(os.getcwd() + '/..')
 sys.path.append(os.getcwd() + '/../..')
 from CLIP import clip
 from prompt_templates import prompt_templates_openai, subset_prompt_templates_openai
-from cub_resources.id_to_labels import id_to_labels
+from cub_resources.id_to_labels import id_to_labels, id_to_top_attributes
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 clip_model, preprocess = clip.load('ViT-B/32')
 
 def find_clip_accuracies(
     use_prompts='yes',
+    num_attributes=0,
 ):
     if use_prompts=='yes':
         prompt_templates = prompt_templates_openai
@@ -31,10 +32,14 @@ def find_clip_accuracies(
     def zeroshot_classifier(classes):
         with torch.no_grad():
             zeroshot_weights = []
-            """ for wnid in tqdm(classes, desc='generate text classifier', leave=False): """
             for class_id in classes:
                 label = id_to_labels[class_id]
-                texts = [template.format(label+' ') if template[-2] != '}' else template.format(label) for template in prompt_templates]
+                if num_attributes > 0:
+                    label += ', which ' + ', '.join(id_to_top_attributes[class_id][:num_attributes])
+                texts = []
+                for template in prompt_templates:
+                    caption = template.format(label+',') if template[-2] != '}' else template.format(label)
+                    texts.append(caption)
                 texts = clip.tokenize(texts).cuda()
                 class_embeddings = clip_model.encode_text(texts)
                 class_embeddings /= class_embeddings.norm(dim=-1, keepdim=True)
@@ -75,17 +80,23 @@ def find_clip_accuracies(
         # Count top 1 and top 5 accuracies
         for i in range(indices.shape[0]):
             predictions = [list(id_to_labels.values())[index] for index in indices[i]]
-            if id_to_labels[class_id] == predictions[0]:
+            if id_to_labels[int(class_id)] == predictions[0]:
                 top1 += 1
-            if id_to_labels[class_id] in predictions:
+            if id_to_labels[int(class_id)] in predictions:
                 top5 += 1
 
     print ('-'*40)
     print (f'Accuracy: {100.0 * top1 / 10000:.2f}%')
     print ()
 
-prompts_options = [('no', 'without'), ('bird', 'with the bird'), ('subset', 'with subset of')]
+prompts_options = [('no', 'without'), ('bird', 'with the bird')]
 for prompts_option, benchmark_title in prompts_options:
+
+    print (f'CLIP ViT with top 3 attribute and {benchmark_title} prompt templates')
+    find_clip_accuracies(use_prompts=prompts_option, num_attributes=3)
+
+    print (f'CLIP ViT with best attribute and {benchmark_title} prompt templates')
+    find_clip_accuracies(use_prompts=prompts_option, num_attributes=1)
 
     print (f'CLIP ViT {benchmark_title} prompt templates')
     find_clip_accuracies(use_prompts=prompts_option)
