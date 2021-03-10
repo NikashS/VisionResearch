@@ -11,7 +11,6 @@ sys.path.append(os.getcwd() + '/..')
 from CLIP import clip
 from prompt_templates import prompt_templates_openai, subset_prompt_templates_openai
 from wnid_dictionaries import wnid_to_labels, wnid_to_categories, wnid_to_labels_openai, wnid_to_short_hyponyms, common_hyponyms, common_hyponyms_human
-from helper_scripts.parse_csv_hyponyms import wnid_to_multiple_categories, wnid_to_different_categories, wnid_to_two_categories
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 clip_model, preprocess = clip.load('ViT-B/32')
@@ -25,6 +24,7 @@ def find_clip_accuracies(
     use_openai_imagenet_classes=True,
     hyponyms_dict=wnid_to_short_hyponyms,
     hyponym_template=', a type of {}',
+    ensemble_hyponyms=False,
 ):
     if use_prompts=='yes':
         prompt_templates = prompt_templates_openai
@@ -37,11 +37,16 @@ def find_clip_accuracies(
         with torch.no_grad():
             zeroshot_weights = []
             for wnid in classes:
-                label = f'{classes[wnid]}{hyponym_template.format(hyponyms_dict[wnid])}' if use_hyponyms else classes[wnid]
+                if ensemble_hyponyms:
+                    labels = [f'{classes[wnid]}{hyponym_template.format(hyponym)}' for hyponym in hyponyms_dict[wnid][:5]]
+                    labels.append(classes[wnid])
+                else:
+                    labels = [f'{classes[wnid]}{hyponym_template.format(hyponyms_dict[wnid])}' if use_hyponyms else classes[wnid]]
                 texts = []
                 for template in prompt_templates:
-                    caption = template.format(label+',') if template[-2]!='}' else template.format(label)
-                    texts.append(caption)
+                    for label in labels:
+                        caption = template.format(label+',') if template[-2]!='}' else template.format(label)
+                        texts.append(caption)
                 texts = clip.tokenize(texts).cuda()
                 class_embeddings = resnet_model.encode_text(texts) if use_resnet else clip_model.encode_text(texts)
                 class_embeddings /= class_embeddings.norm(dim=-1, keepdim=True)
@@ -106,14 +111,19 @@ for prompts_option, benchmark_title in prompts_options:
     hyponym_templates = [', which is a type of {}']
     for hyponym_template in hyponym_templates:
 
-        print (f'CLIP ViT {benchmark_title} prompt templates and with mturk survey results (using {hyponym_template})')
-        find_clip_accuracies(use_prompts=prompts_option, use_hyponyms=True, hyponyms_dict=wnid_to_two_categories, hyponym_template=hyponym_template)
+        print (f'{benchmark_title} prompt templates, mturk results, (using {hyponym_template}), ensembling all results')
+        find_clip_accuracies(
+            use_prompts=prompts_option,
+            use_hyponyms=True,
+            hyponyms_dict=wnid_to_categories,
+            hyponym_template=hyponym_template,
+            ensemble_hyponyms=True
+        )
 
-        print (f'CLIP ViT {benchmark_title} prompt templates and with mturk survey results (using {hyponym_template})')
-        find_clip_accuracies(use_prompts=prompts_option, use_hyponyms=True, hyponyms_dict=wnid_to_different_categories, hyponym_template=hyponym_template)
-
-        print (f'CLIP ViT {benchmark_title} prompt templates and with mturk survey results (using {hyponym_template})')
-        find_clip_accuracies(use_prompts=prompts_option, use_hyponyms=True, hyponyms_dict=wnid_to_categories, hyponym_template=hyponym_template)
-
-    print (f'CLIP ViT {benchmark_title} prompt templates')
-    find_clip_accuracies(use_prompts=prompts_option)
+        print (f'{benchmark_title} prompt templates, mturk results, (using {hyponym_template}), best category name')
+        find_clip_accuracies(
+            use_prompts=prompts_option,
+            use_hyponyms=True,
+            hyponyms_dict={key: wnid_to_categories[key][0] for key in wnid_to_categories},
+            hyponym_template=hyponym_template
+        )
