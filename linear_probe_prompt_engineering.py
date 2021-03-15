@@ -19,24 +19,24 @@ def get_features(dataset_path):
     all_labels = []
 
     with torch.no_grad():
-        for wnid in os.listdir(dataset_path):
+        for wnid in tqdm(os.listdir(dataset_path)[:10]):
             subdirectory = dataset_path + wnid + r'/'
             images = []
 
             # Preprocess images
-            for filename in os.listdir(subdirectory):
+            for filename in os.listdir(subdirectory)[:5]:
                 filepath = subdirectory + filename
                 image = Image.open(filepath).convert('RGB')
                 image_input = preprocess(image).unsqueeze(0).to(device)
                 images += [image_input]
             images = torch.cat(images, 0)
 
-            image_features = model.encode_image(images)
+            features = model.encode_image(images)
             label = wnid_to_labels_openai[wnid]
             all_features.append(features)
             all_labels.append(label)
 
-    return torch.cat(all_features).cpu().numpy(), torch.cat(all_labels).cpu().numpy()
+    return all_features.cpu().numpy(), all_labels.cpu().numpy()
 
 train_directory = r'/localtmp/data/imagenet256/train/'
 test_directory = r'/localtmp/data/imagenet256/val/'
