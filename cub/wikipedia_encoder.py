@@ -6,7 +6,6 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.feature_extraction.text import TfidfVectorizer
 import sys
 import torch
-from tqdm import tqdm
 
 print ('starting...')
 
@@ -44,5 +43,5 @@ train_features, train_labels = get_features(train_directory)
 classifier = LogisticRegression(random_state=0, C=0.316, max_iter=1000, verbose=0)
 classifier.fit(train_features, train_labels)
 
-filename = 'pickle/cub_wikipedia_encoder.pkl'
+filename = 'pickle/wikipedia_encoder.pkl'
 pickle.dump(classifier, open(filename, 'wb'))
