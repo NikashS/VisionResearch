@@ -25,6 +25,3 @@ for img in train_test:
         train_filenames.add(id_to_filenames[num])
     else:
         test_filenames.add(id_to_filenames[num])
-
-print (len(train_filenames))
-print (len(test_filenames))
