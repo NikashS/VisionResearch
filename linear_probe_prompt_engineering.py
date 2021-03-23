@@ -36,7 +36,7 @@ def get_features(dataset_path):
             all_features.append(features)
             all_labels.append(label)
 
-    return all_features.cpu().numpy(), all_labels.cpu().numpy()
+    return all_features, all_labels
 
 train_directory = r'/localtmp/data/imagenet256/train/'
 test_directory = r'/localtmp/data/imagenet256/val/'
