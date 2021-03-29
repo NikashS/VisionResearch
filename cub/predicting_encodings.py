@@ -25,8 +25,6 @@ model, preprocess = clip.load('ViT-B/32')
 seen_labels = set([x+1 for x in range(160)])
 unseen_labels = set([x+161 for x in range(40)])
 
-print (seen_labels, unseen_labels)
-
 def get_image_features(dataset_path, train=True, seen=True):
     all_features = []
     all_labels = []
@@ -45,34 +43,34 @@ def get_image_features(dataset_path, train=True, seen=True):
                         images += [image_input]
                 images = torch.cat(images, 0)
                 features = model.encode_image(images)
-                # features = np.resize(features.cpu().numpy().flatten(), 15360)
                 features = features.cpu().numpy()
-                features = block_reduce(features, (len(features), 1), np.max).flatten()
+                # features = np.resize(features.flatten(), 15360)
+                features = block_reduce(features, (len(features), 1), np.mean).flatten()
                 all_features += [features]
     return all_features, all_labels
 
 def get_text_features(dataset_path, seen=True):
     all_features = []
     all_labels = []
-
     corpus = []
     for bird_filename in os.listdir(dataset_path):
         bird_id = int(bird_filename.split('.')[0])
         if (seen and bird_id in seen_labels) or (not seen and bird_id in unseen_labels):
             all_labels += [bird_id]
-
             bird_path = f'{dataset_path}{bird_filename}'
             bird_file = open(bird_path, 'r', errors='ignore')
             bird_text = bird_file.read()
             corpus += [bird_text]
-
-    vectorizer = TfidfVectorizer(use_idf=True, max_features=1000)
+    vectorizer = TfidfVectorizer(max_features=1000, stop_words={'english'})
+    # df_idf = pd.DataFrame(tfidf_transformer.idf_, index=cv.get_feature_names(),columns=["idf_weights"]) 
+    # df_idf.sort_values(by=['idf_weights'])
     vectors = vectorizer.fit_transform(corpus)
     all_features = vectors.todense()
     return all_features, all_labels
 
 def accuracy(classifier, features, labels):
     predictions = classifier.predict(features)
+    print (predictions)
     accuracy = np.mean((labels == predictions).astype(np.float)) * 100.
     return accuracy
 
@@ -81,50 +79,50 @@ def accuracy(classifier, features, labels):
 # pickle.dump((train_features, train_labels), open('pickle/train_data.pkl', 'wb'))
 # test_features, test_labels = get_image_features(images_directory, train=False)
 # pickle.dump((test_features, test_labels), open('pickle/test_data.pkl', 'wb'))
-# test_unseen_features, test_unseen_labels = get_image_features(images_directory, train=False, seen=False)
-# pickle.dump((test_unseen_features, test_unseen_labels), open('pickle/test_unseen_data.pkl', 'wb'))
+# unseen_features, unseen_labels = get_image_features(images_directory, train=False, seen=False)
+# pickle.dump((unseen_features, unseen_labels), open('pickle/test_unseen_data.pkl', 'wb'))
 train_features, train_labels = pickle.load(open('pickle/train_data.pkl', 'rb'))
 test_features, test_labels = pickle.load(open('pickle/test_data.pkl', 'rb'))
-test_unseen_features, test_unseen_labels = pickle.load(open('pickle/test_unseen_data.pkl', 'rb'))
+unseen_features, unseen_labels = pickle.load(open('pickle/test_unseen_data.pkl', 'rb'))
 
-classifier = LogisticRegression(C=0.316, max_iter=1000, solver='sag', n_jobs=1000, verbose=1)
-classifier.fit(train_features, train_labels)
-pickle.dump(classifier, open('pickle/logres_image_classifier.pkl', 'wb'))
-# classifier = pickle.load(open('pickle/logres_image_classifier.pkl', 'rb'))
+# classifier = LogisticRegression(C=0.316, max_iter=500, solver='sag', n_jobs=1000, verbose=1)
+# classifier.fit(train_features, train_labels)
+# pickle.dump(classifier, open('pickle/logres_image_classifier.pkl', 'wb'))
+classifier = pickle.load(open('pickle/logres_image_classifier.pkl', 'rb'))
 print (f'Seen accuracy without unseen categories: {accuracy(classifier, test_features, test_labels):.3f}')
 
 wikipedia_directory = r'/localtmp/data/cub/birds_wikipedia/'
 seen_wikipedia_features, seen_wikipedia_labels = get_text_features(wikipedia_directory, seen=True)
+unseen_wikipedia_features, unseen_wikipedia_labels = get_text_features(wikipedia_directory, seen=False)
 seen_label_indices = np.asarray(seen_wikipedia_labels) - 1
+unseen_label_indices = np.asarray(unseen_wikipedia_labels) - 161
 ordered_seen_wikipedia_features = seen_wikipedia_features[seen_label_indices]
+ordered_unseen_wikipedia_features = unseen_wikipedia_features[unseen_label_indices]
+ordered_seen_wikipedia_features = normalize(ordered_seen_wikipedia_features, norm="l2")
+ordered_unseen_wikipedia_features = normalize(ordered_unseen_wikipedia_features, norm="l2")
+
 seen_classifier_intercepts = np.asarray([classifier.intercept_]).T
 seen_image_embeddings = np.concatenate((classifier.coef_, seen_classifier_intercepts), axis=1)
-ordered_seen_wikipedia_features = normalize(ordered_seen_wikipedia_features, norm="l2")
 
-perceptron = MLPRegressor(max_iter=2000, learning_rate='adaptive', tol=-1*float('inf'), verbose=1)
+perceptron = MLPRegressor(max_iter=10000, learning_rate='adaptive', tol=-1*float('inf'), verbose=1)
 perceptron.fit(ordered_seen_wikipedia_features, seen_image_embeddings)
 pickle.dump(perceptron, open('pickle/mlp_wikipedia_regressor.pkl', 'wb'))
 # perceptron = pickle.load(open('pickle/mlp_wikipedia_regressor.pkl', 'rb'))
 
-unseen_wikipedia_features, unseen_wikipedia_labels = get_text_features(wikipedia_directory, seen=False)
-unseen_label_indices = np.asarray(unseen_wikipedia_labels) - 161
-ordered_unseen_wikipedia_features = unseen_wikipedia_features[unseen_label_indices]
-ordered_unseen_wikipedia_features = normalize(ordered_unseen_wikipedia_features, norm="l2")
-
 unseen_image_embeddings = perceptron.predict(ordered_unseen_wikipedia_features)
-unseen_coefficients = unseen_image_embeddings[:,:-1]
 classifier.intercept_ = np.concatenate((classifier.intercept_, unseen_image_embeddings[:,-1]))
-classifier.coef_ = np.concatenate((classifier.coef_, unseen_coefficients), axis=0)
+classifier.coef_ = np.concatenate((classifier.coef_, unseen_image_embeddings[:,:-1]), axis=0)
 classifier.classes_ = np.asarray([1+x for x in range(200)])
 
-predictions = classifier.predict(test_features)
-print (f'Predictions: {predictions}')
-accuracy = np.mean((test_labels == predictions).astype(np.float)) * 100.
-print (f'Seen accuracy with unseen categories: {accuracy:.3f}')
+print (f'Seen accuracy: {accuracy(classifier, test_features, test_labels):.3f}')
+print (f'Unseen accuracy: {accuracy(classifier, unseen_features, unseen_labels):.3f}')
 
-unseen_predictions = classifier.predict(test_unseen_features)
-print (f'Predictions: {unseen_predictions}')
-accuracy = np.mean((test_unseen_labels == unseen_predictions).astype(np.float)) * 100.
-print (f'Unseen accuracy with unseen categories: {accuracy:.3f}')
+all_wikipedia_features = np.concatenate((ordered_seen_wikipedia_features, ordered_unseen_wikipedia_features), axis=0)
+all_image_embeddings = perceptron.predict(all_wikipedia_features)
+classifier.coef_ = all_image_embeddings[:,:-1]
+classifier.intercept_ = all_image_embeddings[:,-1]
+
+print (f'Seen accuracy: {accuracy(classifier, test_features, test_labels):.3f}')
+print (f'Unseen accuracy: {accuracy(classifier, unseen_features, unseen_labels):.3f}')
 
 
