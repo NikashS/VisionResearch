@@ -133,3 +133,7 @@ classifier.intercept_ = all_image_embeddings[:,-1]
 print (f'Seen accuracy: {accuracy(classifier, test_features, test_labels):.3f}')
 print (f'Unseen accuracy: {accuracy(classifier, unseen_features, unseen_labels):.3f}')
 
+classifier.classes_ = np.asarray([161+x for x in range(40)])
+classifier.coef_ = unseen_image_embeddings[:,:-1]
+classifier.intercept_ = unseen_image_embeddings[:,-1]
+print (f'Non-generalized unseen accuracy: {accuracy(classifier, unseen_features, unseen_labels):.3f}')
