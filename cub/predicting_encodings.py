@@ -7,7 +7,7 @@ from skimage.measure import block_reduce
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
 from sklearn.neural_network import MLPRegressor 
-from sklearn.preprocessing import normalize
+from sklearn.preprocessing import normalize, StandardScaler
 import sys
 import torch
 from tqdm import tqdm
@@ -61,10 +61,10 @@ def get_text_features(dataset_path, seen=True):
             bird_file = open(bird_path, 'r', errors='ignore')
             bird_text = bird_file.read()
             corpus += [bird_text]
-    vectorizer = TfidfVectorizer(max_features=1000, stop_words={'english'})
-    # df_idf = pd.DataFrame(tfidf_transformer.idf_, index=cv.get_feature_names(),columns=["idf_weights"]) 
-    # df_idf.sort_values(by=['idf_weights'])
+    vectorizer = TfidfVectorizer(max_features=1000, stop_words='english')
     vectors = vectorizer.fit_transform(corpus)
+    # df = pd.DataFrame(vectors[0].T.todense(), index=vectorizer.get_feature_names(), columns=["tfidf"])
+    # df = df.sort_values(by=["tfidf"],ascending=False)
     all_features = vectors.todense()
     return all_features, all_labels
 
@@ -91,6 +91,9 @@ unseen_features, unseen_labels = pickle.load(open('pickle/test_unseen_data.pkl',
 classifier = pickle.load(open('pickle/logres_image_classifier.pkl', 'rb'))
 print (f'Seen accuracy without unseen categories: {accuracy(classifier, test_features, test_labels):.3f}')
 
+seen_classifier_intercepts = np.asarray([classifier.intercept_]).T
+seen_image_embeddings = np.concatenate((classifier.coef_, seen_classifier_intercepts), axis=1)
+
 wikipedia_directory = r'/localtmp/data/cub/birds_wikipedia/'
 seen_wikipedia_features, seen_wikipedia_labels = get_text_features(wikipedia_directory, seen=True)
 unseen_wikipedia_features, unseen_wikipedia_labels = get_text_features(wikipedia_directory, seen=False)
@@ -98,15 +101,20 @@ seen_label_indices = np.asarray(seen_wikipedia_labels) - 1
 unseen_label_indices = np.asarray(unseen_wikipedia_labels) - 161
 ordered_seen_wikipedia_features = seen_wikipedia_features[seen_label_indices]
 ordered_unseen_wikipedia_features = unseen_wikipedia_features[unseen_label_indices]
+
 ordered_seen_wikipedia_features = normalize(ordered_seen_wikipedia_features, norm="l2")
 ordered_unseen_wikipedia_features = normalize(ordered_unseen_wikipedia_features, norm="l2")
 
-seen_classifier_intercepts = np.asarray([classifier.intercept_]).T
-seen_image_embeddings = np.concatenate((classifier.coef_, seen_classifier_intercepts), axis=1)
-
-perceptron = MLPRegressor(max_iter=10000, learning_rate='adaptive', tol=-1*float('inf'), verbose=1)
+perceptron = MLPRegressor(
+    max_iter=10000,
+    alpha=0.001,
+    learning_rate='adaptive',
+    tol=-1*float('inf'),
+    verbose=1
+)
 perceptron.fit(ordered_seen_wikipedia_features, seen_image_embeddings)
 pickle.dump(perceptron, open('pickle/mlp_wikipedia_regressor.pkl', 'wb'))
+
 # perceptron = pickle.load(open('pickle/mlp_wikipedia_regressor.pkl', 'rb'))
 
 unseen_image_embeddings = perceptron.predict(ordered_unseen_wikipedia_features)
@@ -124,5 +132,4 @@ classifier.intercept_ = all_image_embeddings[:,-1]
 
 print (f'Seen accuracy: {accuracy(classifier, test_features, test_labels):.3f}')
 print (f'Unseen accuracy: {accuracy(classifier, unseen_features, unseen_labels):.3f}')
-
 
