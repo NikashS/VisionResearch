@@ -6,11 +6,16 @@ from PIL import Image
 from skimage.measure import block_reduce
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import roc_auc_score, average_precision_score, auc
 from sklearn.neural_network import MLPRegressor 
-from sklearn.preprocessing import normalize, StandardScaler
+from sklearn.preprocessing import normalize, LabelBinarizer, StandardScaler
 import sys
 import torch
 from tqdm import tqdm
+
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
 
 sys.path.append(os.getcwd() + '/..')
 sys.path.append(os.getcwd() + '/../..')
@@ -68,8 +73,8 @@ def get_text_features(dataset_path, seen=True):
     all_features = vectors.todense()
     return all_features, all_labels
 
-def generate_noise_train_data(wikipedia_features, image_embeddings, multiplier=3):
-    min_weight = np.absolute(image_embeddings).min()
+def generate_noise_train_data(wikipedia_features, image_embeddings, multiplier=5):
+    min_weight = np.absolute(image_embeddings).min()*1000
     for i in range(multiplier):
         noise = np.random.normal(0, min_weight, image_embeddings.shape)
         image_embeddings_noise = image_embeddings + noise
@@ -79,7 +84,13 @@ def generate_noise_train_data(wikipedia_features, image_embeddings, multiplier=3
 
 def accuracy(classifier, features, labels):
     predictions = classifier.predict(features)
-    print (predictions)
+    lb = LabelBinarizer()
+    lb.fit(labels)
+    labels_binarized = lb.transform(labels)
+    predictions_binarized = lb.transform(predictions)
+    print (f'ROC AUC Score: {roc_auc_score(labels_binarized, predictions_binarized, average="weighted")}')
+    print (f'PR AUC Score: {average_precision_score(labels_binarized, predictions_binarized)}')
+    # print (predictions)
     accuracy = np.mean((labels == predictions).astype(np.float)) * 100.
     return accuracy
 
@@ -98,7 +109,6 @@ unseen_features, unseen_labels = pickle.load(open('pickle/test_unseen_data.pkl',
 # classifier.fit(train_features, train_labels)
 # pickle.dump(classifier, open('pickle/logres_image_classifier.pkl', 'wb'))
 classifier = pickle.load(open('pickle/logres_image_classifier.pkl', 'rb'))
-print (f'Seen accuracy without unseen categories: {accuracy(classifier, test_features, test_labels):.3f}')
 
 seen_classifier_intercepts = np.asarray([classifier.intercept_]).T
 seen_image_embeddings = np.concatenate((classifier.coef_, seen_classifier_intercepts), axis=1)
@@ -114,18 +124,20 @@ ordered_unseen_wikipedia_features = unseen_wikipedia_features[unseen_label_indic
 ordered_seen_wikipedia_features = normalize(ordered_seen_wikipedia_features, norm="l2")
 ordered_unseen_wikipedia_features = normalize(ordered_unseen_wikipedia_features, norm="l2")
 
-more_features, more_embeddings = generate_noise_train_data(ordered_seen_wikipedia_features, seen_image_embeddings)
+# more_features, more_embeddings = generate_noise_train_data(ordered_seen_wikipedia_features, seen_image_embeddings)
 
-perceptron = MLPRegressor(
-    max_iter=10000,
-    alpha=0.001,
-    learning_rate='adaptive',
-    tol=-1*float('inf'),
-    verbose=1,
-)
-perceptron.fit(more_features, more_embeddings)
-pickle.dump(perceptron, open('pickle/mlp_wikipedia_regressor.pkl', 'wb'))
-# perceptron = pickle.load(open('pickle/mlp_wikipedia_regressor.pkl', 'rb'))
+# perceptron = MLPRegressor(
+#     max_iter=10000,
+#     alpha=0.001,
+#     learning_rate='adaptive',
+#     tol=-1*float('inf'),
+#     verbose=1,
+# )
+# perceptron.fit(more_features, more_embeddings)
+# plt.plot(perceptron.loss_curve_)
+# plt.savefig('perceptron_loss_10000.png')
+# pickle.dump(perceptron, open('pickle/mlp_wikipedia_regressor.pkl', 'wb'))
+perceptron = pickle.load(open('pickle/mlp_wikipedia_regressor.pkl', 'rb'))
 
 unseen_image_embeddings = perceptron.predict(ordered_unseen_wikipedia_features)
 classifier.intercept_ = np.concatenate((classifier.intercept_, unseen_image_embeddings[:,-1]))
