@@ -113,7 +113,7 @@ all_labels = np.concatenate((train_labels, unseen_labels))
 # classifier.fit(all_features, all_labels)
 # pickle.dump(classifier, open('pickle_test/logres_image_classifier_ground_truth.pkl', 'wb'))
 classifier = pickle.load(open('pickle_test/logres_image_classifier_ground_truth.pkl', 'rb'))
-all_real_weights = classifier.coef_
+all_real_weights = np.concatenate((classifier.coef_, np.asarray([classifier.intercept_]).T), axis=1)
 
 # classifier.fit(train_features, train_labels)
 # pickle.dump(classifier, open('pickle_test/logres_image_classifier.pkl', 'wb'))
@@ -138,7 +138,7 @@ more_features, more_embeddings = generate_noise_train_data(ordered_seen_wikipedi
 
 seen_loss = []
 unseen_loss = []
-for i in range(100, 10000, 100):
+for i in range(200, 10000, 200):
     perceptron = MLPRegressor(
         max_iter=i,
         alpha=0.001,
@@ -149,12 +149,12 @@ for i in range(100, 10000, 100):
     perceptron.fit(more_features, more_embeddings)
     all_wikipedia_features = np.concatenate((ordered_seen_wikipedia_features, ordered_unseen_wikipedia_features), axis=0)
     all_image_embeddings = perceptron.predict(all_wikipedia_features)
-    all_predicted_weights = all_image_embeddings[:,:-1]
+    all_predicted_weights = all_image_embeddings
 
     seen_loss += [np.mean(euclidean_distances(all_real_weights[:160], all_predicted_weights[:160]))]
     unseen_loss += [np.mean(euclidean_distances(all_real_weights[160:200], all_predicted_weights[160:200]))]
 
-plt.plot(list(range(100, 10000, 100)), seen_loss, label="Seen Losses")
-plt.plot(list(range(100, 10000, 100)), unseen_loss, label="Unseen Losses")
+plt.plot(list(range(200, 10000, 200)), seen_loss, label="Seen Losses")
+plt.plot(list(range(200, 10000, 200)), unseen_loss, label="Unseen Losses")
 plt.legend()
 plt.savefig('loss_curves.png')
