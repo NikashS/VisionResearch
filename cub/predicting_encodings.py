@@ -7,6 +7,7 @@ from skimage.measure import block_reduce
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import roc_auc_score, average_precision_score, auc
+from sklearn.model_selection import cross_val_score
 from sklearn.neural_network import MLPRegressor 
 from sklearn.preprocessing import normalize, LabelBinarizer, StandardScaler
 import sys
@@ -90,9 +91,8 @@ def accuracy(classifier, features, labels):
     predictions_binarized = lb.transform(predictions)
     print (f'ROC AUC Score: {roc_auc_score(labels_binarized, predictions_binarized, average="weighted")}')
     print (f'PR AUC Score: {average_precision_score(labels_binarized, predictions_binarized)}')
-    # print (predictions)
-    accuracy = np.mean((labels == predictions).astype(np.float)) * 100.
-    return accuracy
+    
+    return (classifier.score(features, labels)*100)
 
 # images_directory = r'/localtmp/data/cub/CUB_200_2011/images/'
 # train_features, train_labels = get_image_features(images_directory, train=True)
@@ -124,20 +124,18 @@ ordered_unseen_wikipedia_features = unseen_wikipedia_features[unseen_label_indic
 ordered_seen_wikipedia_features = normalize(ordered_seen_wikipedia_features, norm="l2")
 ordered_unseen_wikipedia_features = normalize(ordered_unseen_wikipedia_features, norm="l2")
 
-# more_features, more_embeddings = generate_noise_train_data(ordered_seen_wikipedia_features, seen_image_embeddings)
+more_features, more_embeddings = generate_noise_train_data(ordered_seen_wikipedia_features, seen_image_embeddings)
 
-# perceptron = MLPRegressor(
-#     max_iter=10000,
-#     alpha=0.001,
-#     learning_rate='adaptive',
-#     tol=-1*float('inf'),
-#     verbose=1,
-# )
-# perceptron.fit(more_features, more_embeddings)
-# plt.plot(perceptron.loss_curve_)
-# plt.savefig('perceptron_loss_10000.png')
+perceptron = MLPRegressor(
+    max_iter=100,
+    alpha=0.001,
+    learning_rate='adaptive',
+    tol=-1*float('inf'),
+    verbose=1,
+)
+perceptron.fit(more_features, more_embeddings)
 # pickle.dump(perceptron, open('pickle/mlp_wikipedia_regressor.pkl', 'wb'))
-perceptron = pickle.load(open('pickle/mlp_wikipedia_regressor.pkl', 'rb'))
+# perceptron = pickle.load(open('pickle/mlp_wikipedia_regressor.pkl', 'rb'))
 
 unseen_image_embeddings = perceptron.predict(ordered_unseen_wikipedia_features)
 classifier.intercept_ = np.concatenate((classifier.intercept_, unseen_image_embeddings[:,-1]))
