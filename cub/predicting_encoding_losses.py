@@ -109,10 +109,10 @@ unseen_features, unseen_labels = pickle.load(open('pickle/test_unseen_data.pkl',
 all_features = np.concatenate((train_features, unseen_features))
 all_labels = np.concatenate((train_labels, unseen_labels))
 
-# classifier = LogisticRegression(C=0.316, max_iter=500, solver='sag', n_jobs=1000, verbose=1)
-# classifier.fit(all_features, all_labels)
-# pickle.dump(classifier, open('pickle_test/logres_image_classifier_ground_truth.pkl', 'wb'))
-classifier = pickle.load(open('pickle_test/logres_image_classifier_ground_truth.pkl', 'rb'))
+classifier = LogisticRegression(C=0.316, max_iter=500, solver='sag', n_jobs=1000, verbose=1)
+classifier.fit(all_features, all_labels)
+pickle.dump(classifier, open('pickle/logres_image_classifier_ground_truth.pkl', 'wb'))
+# classifier = pickle.load(open('pickle_test/logres_image_classifier_ground_truth.pkl', 'rb'))
 all_real_weights = np.concatenate((classifier.coef_, np.asarray([classifier.intercept_]).T), axis=1)
 
 # classifier.fit(train_features, train_labels)
