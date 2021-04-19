@@ -74,7 +74,7 @@ def get_text_features(dataset_path, seen=True):
     all_features = vectors.todense()
     return all_features, all_labels
 
-def generate_noise_train_data(wikipedia_features, image_embeddings, multiplier=3):
+def generate_noise_train_data(wikipedia_features, image_embeddings, multiplier=0):
     min_weight = np.absolute(image_embeddings).min()*1000
     for i in range(multiplier):
         noise = np.random.normal(0, min_weight, image_embeddings.shape)
@@ -109,17 +109,17 @@ unseen_features, unseen_labels = pickle.load(open('pickle/test_unseen_data.pkl',
 all_features = np.concatenate((train_features, unseen_features))
 all_labels = np.concatenate((train_labels, unseen_labels))
 
-classifier = LogisticRegression(C=0.316, max_iter=500, solver='sag', n_jobs=1000, verbose=1)
-classifier.fit(all_features, all_labels)
-pickle.dump(classifier, open('pickle/logres_image_classifier_ground_truth.pkl', 'wb'))
-# classifier = pickle.load(open('pickle_test/logres_image_classifier_ground_truth.pkl', 'rb'))
-all_real_weights = np.concatenate((classifier.coef_, np.asarray([classifier.intercept_]).T), axis=1)
+# classifier = LogisticRegression(C=0.316, max_iter=500, solver='sag', n_jobs=1000, verbose=1)
+# classifier.fit(all_features, all_labels)
+# pickle.dump(classifier, open('pickle/logres_image_classifier_ground_truth.pkl', 'wb'))
+classifier = pickle.load(open('pickle/logres_image_classifier_ground_truth.pkl', 'rb'))
+all_real_weights = np.concatenate((classifier.coef_, np.asarray([classifier.intercept_]).T / 1e5), axis=1)
 
 # classifier.fit(train_features, train_labels)
 # pickle.dump(classifier, open('pickle_test/logres_image_classifier.pkl', 'wb'))
 classifier = pickle.load(open('pickle/logres_image_classifier.pkl', 'rb'))
 
-seen_classifier_intercepts = np.asarray([classifier.intercept_]).T
+seen_classifier_intercepts = np.asarray([classifier.intercept_]).T / 1e5
 seen_image_embeddings = np.concatenate((classifier.coef_, seen_classifier_intercepts), axis=1)
 
 wikipedia_directory = r'/localtmp/data/cub/birds_wikipedia/'
@@ -138,7 +138,7 @@ more_features, more_embeddings = generate_noise_train_data(ordered_seen_wikipedi
 
 seen_loss = []
 unseen_loss = []
-for i in range(200, 10000, 200):
+for i in range(250, 10000, 250):
     perceptron = MLPRegressor(
         max_iter=i,
         alpha=0.001,
@@ -154,7 +154,7 @@ for i in range(200, 10000, 200):
     seen_loss += [np.mean(euclidean_distances(all_real_weights[:160], all_predicted_weights[:160]))]
     unseen_loss += [np.mean(euclidean_distances(all_real_weights[160:200], all_predicted_weights[160:200]))]
 
-plt.plot(list(range(200, 10000, 200)), seen_loss, label="Seen Losses")
-plt.plot(list(range(200, 10000, 200)), unseen_loss, label="Unseen Losses")
+plt.plot(list(range(250, 10000, 250)), seen_loss, label="Seen Losses")
+plt.plot(list(range(250, 10000, 250)), unseen_loss, label="Unseen Losses")
 plt.legend()
-plt.savefig('loss_curves.png')
+plt.savefig('loss_curves_test.png')
