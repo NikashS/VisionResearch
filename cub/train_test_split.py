@@ -1,8 +1,8 @@
 import os
 import sys
 
-image_filename = '/localtmp/data/cub/CUB_200_2011/images.txt'
-train_test_filename = '/localtmp/data/cub/CUB_200_2011/train_test_split.txt'
+image_filename = 'CUB_200_2011/images.txt'
+train_test_filename = 'CUB_200_2011/train_test_split.txt'
 
 id_to_filenames = {}
 image_file = open(image_filename, 'r')
