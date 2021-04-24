@@ -20,4 +20,4 @@ To improve model loading performance, optionally download and load the CLIP ViT 
 
 Inside the `cub` directory is a zero-shot learning approach using CLIP for the Caltech-UCSD Birds (CUB) dataset. This code learns the weights of a logistic regression classifier trained on seen classes of the CUB dataset, and trains a multi-layer perceptron on wikipedia descriptions of each bird class to predict weights for unseen classes.
 
-`predicting_encodings.py` is the main python script here. Download the CUB dataset [here](http://www.vision.caltech.edu/visipedia/CUB-200-2011.html) and corresponding Wikipedia textual descriptions [here](http://deep.cs.virginia.edu/data/cub/birds_wikipedia/)
+`predicting_encodings.py` is the main python script here. Download the CUB dataset [here](http://www.vision.caltech.edu/visipedia/CUB-200-2011.html) and corresponding Wikipedia textual descriptions [here](http://deep.cs.virginia.edu/data/cub/birds_wikipedia/).
