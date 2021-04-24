@@ -4,7 +4,7 @@
 
 ## Getting started
 
-Clone this repository and the CLIP repository linked above in the same directory. 
+Clone this repository and the CLIP repository linked above in the same directory. Execute `pip install -r requirements.txt` in your virtualenv.
 
 Running this code requires access to UVA's downloaded ImageNet dataset, but this can be easily replaced with ImageNetV2 which is publically available online. Additionally, the python scripts should be run using a CUDA GPU environment.
 
@@ -12,8 +12,12 @@ To improve model loading performance, optionally download and load the CLIP ViT 
 
 ## Overview of repository
 
-`prompt_engineering.py` (benchmarks of CLIP zero-shot learning with prompt engineering and hyponyms) and `linear_probe_prompt_engineering.py` are the main python scripts.
-
-`generate_dictionaries.py` is a one-time script to produce the dictionaries in `wnid_dictionaries.py`.
+`prompt_engineering.py` is the main python script. This file benchmarks CLIP zero-shot learning with prompt engineering and hyponyms on the ImageNet dataset and achieves an accuracy score of 65.8% accuracy (compared to OpenAI's 63.2% accuracy in `first_benchmarks.py`).
 
 `prompt_templates.py` contains caption templates for images to improve CLIP's accuracy, and these templates are used in `prompt_engineering.py`.
+
+### CUB Predicting Encodings
+
+Inside the `cub` directory is a zero-shot learning approach using CLIP for the Caltech-UCSD Birds dataset. This code learns the weights of a logistic regression classifier trained on seen classes of the CUB dataset, and trains a multi-layer perceptron on wikipedia descriptions of each bird class to predict weights for unseen classes.
+
+`predicting_encodings.py` is the main python script here.
