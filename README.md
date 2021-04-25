@@ -1,6 +1,6 @@
 # Zero-shot learning with CLIP
 
-4th year thesis research project with Professor Vicente Ordonez-Roman. For my project, I will be improving the zero-shot learning accuracy of CLIP, an OpenAI model that produces state-of-the-art accuracies on a wide range of datasets. Read more about CLIP [here](https://openai.com/blog/clip/) and view it's source code [here](https://github.com/openai/CLIP).
+4th year thesis research project with Professor Vicente Ordonez-Roman. For my project, I improve the zero-shot learning accuracy of CLIP, an OpenAI model that produces state-of-the-art accuracies on a wide range of datasets. I also implement a novel zero-shot learning approach for predicting a classifier for unseen classes using Wikipedia textual descriptions of classes. Read more about CLIP [here](https://openai.com/blog/clip/) and view it's source code [here](https://github.com/openai/CLIP).
 
 ## Getting started
 
@@ -18,6 +18,6 @@ To improve model loading performance, optionally download and load the CLIP ViT 
 
 ### CUB Predicting Encodings
 
-Inside the `cub` directory is a zero-shot learning approach using CLIP for the Caltech-UCSD Birds dataset. This code learns the weights of a logistic regression classifier trained on seen classes of the CUB dataset, and trains a multi-layer perceptron on wikipedia descriptions of each bird class to predict weights for unseen classes.
+Inside the `cub` directory is a zero-shot learning approach using CLIP for the Caltech-UCSD Birds (CUB) dataset. This code learns the weights of a logistic regression classifier trained on seen classes of the CUB dataset, and trains a multi-layer perceptron on wikipedia descriptions of each bird class to predict weights for unseen classes.
 
-`predicting_encodings.py` is the main python script here.
+`predicting_encodings.py` is the main python script here. Download the CUB dataset [here](http://www.vision.caltech.edu/visipedia/CUB-200-2011.html) and corresponding Wikipedia textual descriptions [here](http://deep.cs.virginia.edu/data/cub/birds_wikipedia/).
