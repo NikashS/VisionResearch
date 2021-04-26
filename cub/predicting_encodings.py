@@ -2,6 +2,7 @@ import numpy as np
 import os
 import pandas as pd
 import pickle
+from copy import deepcopy
 from PIL import Image
 from skimage.measure import block_reduce
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -59,7 +60,7 @@ def get_text_features(dataset_path, seen=True):
     all_features = []
     all_labels = []
     corpus = []
-    for bird_filename in os.listdir(dataset_path):
+    for bird_filename in sorted(os.listdir(dataset_path)):
         bird_id = int(bird_filename.split('.')[0])
         if (seen and bird_id in seen_labels) or (not seen and bird_id in unseen_labels):
             all_labels += [bird_id]
@@ -85,6 +86,8 @@ def generate_noise_train_data(wikipedia_features, image_embeddings, multiplier=3
 
 def accuracy(classifier, features, labels):
     predictions = classifier.predict(features)
+    print (predictions)
+    print (labels)
     lb = LabelBinarizer()
     lb.fit(labels)
     labels_binarized = lb.transform(labels)
@@ -110,48 +113,44 @@ unseen_features, unseen_labels = pickle.load(open('pickle/test_unseen_data.pkl',
 # pickle.dump(classifier, open('pickle/logres_image_classifier.pkl', 'wb'))
 classifier = pickle.load(open('pickle/logres_image_classifier.pkl', 'rb'))
 
-seen_classifier_intercepts = np.asarray([classifier.intercept_]).T / 100
+seen_classifier_intercepts = np.asarray([classifier.intercept_]).T
 seen_image_embeddings = np.concatenate((classifier.coef_, seen_classifier_intercepts), axis=1)
 
 wikipedia_directory = r'/localtmp/data/cub/birds_wikipedia/'
 seen_wikipedia_features, seen_wikipedia_labels = get_text_features(wikipedia_directory, seen=True)
 unseen_wikipedia_features, unseen_wikipedia_labels = get_text_features(wikipedia_directory, seen=False)
-seen_label_indices = np.asarray(seen_wikipedia_labels) - 1
-unseen_label_indices = np.asarray(unseen_wikipedia_labels) - 161
-ordered_seen_wikipedia_features = seen_wikipedia_features[seen_label_indices]
-ordered_unseen_wikipedia_features = unseen_wikipedia_features[unseen_label_indices]
 
-ordered_seen_wikipedia_features = normalize(ordered_seen_wikipedia_features, norm="l2")
-ordered_unseen_wikipedia_features = normalize(ordered_unseen_wikipedia_features, norm="l2")
+seen_wikipedia_features = normalize(seen_wikipedia_features, norm="l2")
+unseen_wikipedia_features = normalize(unseen_wikipedia_features, norm="l2")
 
-more_features, more_embeddings = generate_noise_train_data(ordered_seen_wikipedia_features, seen_image_embeddings)
+more_features, more_embeddings = generate_noise_train_data(seen_wikipedia_features, seen_image_embeddings)
 
 perceptron = MLPRegressor(
-    max_iter=1000,
-    alpha=0.001,
-    learning_rate='adaptive',
-    tol=-1*float('inf'),
-    verbose=1,
+    hidden_layer_sizes=(1000,1000),
+    learning_rate_init=0.0001,
+    learning_rate='constant',
+    max_iter=20,
+    verbose=0,
 )
-perceptron.fit(more_features, more_embeddings)
-# pickle.dump(perceptron, open('pickle/mlp_wikipedia_regressor.pkl', 'wb'))
+perceptron.fit(deepcopy(more_features), deepcopy(more_embeddings))
+pickle.dump(perceptron, open('pickle/mlp_wikipedia_regressor.pkl', 'wb'))
 # perceptron = pickle.load(open('pickle/mlp_wikipedia_regressor.pkl', 'rb'))
 
-unseen_image_embeddings = perceptron.predict(ordered_unseen_wikipedia_features)
-classifier.intercept_ = np.concatenate((classifier.intercept_, unseen_image_embeddings[:,-1] * 100))
-classifier.coef_ = np.concatenate((classifier.coef_, unseen_image_embeddings[:,:-1]), axis=0)
-classifier.classes_ = np.asarray([1+x for x in range(200)])
-print (f'Seen accuracy (known seen, generated unseen): {accuracy(classifier, test_features, test_labels):.3f}')
-print (f'Unseen accuracy (known seen, generated unseen): {accuracy(classifier, unseen_features, unseen_labels):.3f}')
+unseen_image_embeddings = perceptron.predict(unseen_wikipedia_features)
+# classifier.intercept_ = np.concatenate((classifier.intercept_, unseen_image_embeddings[:,-1]))
+# classifier.coef_ = np.concatenate((classifier.coef_, unseen_image_embeddings[:,:-1]), axis=0)
+# classifier.classes_ = np.asarray([1+x for x in range(200)])
+# print (f'Seen accuracy (known seen, generated unseen): {accuracy(classifier, test_features, test_labels):.3f}')
+# print (f'Unseen accuracy (known seen, generated unseen): {accuracy(classifier, unseen_features, unseen_labels):.3f}')
 
-all_wikipedia_features = np.concatenate((ordered_seen_wikipedia_features, ordered_unseen_wikipedia_features), axis=0)
-all_image_embeddings = perceptron.predict(all_wikipedia_features)
-classifier.coef_ = all_image_embeddings[:,:-1]
-classifier.intercept_ = all_image_embeddings[:,-1] * 100
-print (f'Seen accuracy (generated seen and unseen): {accuracy(classifier, test_features, test_labels):.3f}')
-print (f'Unseen accuracy (generated seen and unseen): {accuracy(classifier, unseen_features, unseen_labels):.3f}')
+# all_wikipedia_features = np.concatenate((seen_wikipedia_features, unseen_wikipedia_features), axis=0)
+# all_image_embeddings = perceptron.predict(all_wikipedia_features)
+# classifier.coef_ = all_image_embeddings[:,:-1]
+# classifier.intercept_ = all_image_embeddings[:,-1]
+# print (f'Seen accuracy (generated seen and unseen): {accuracy(classifier, test_features, test_labels):.3f}')
+# print (f'Unseen accuracy (generated seen and unseen): {accuracy(classifier, unseen_features, unseen_labels):.3f}')
 
 classifier.classes_ = np.asarray([161+x for x in range(40)])
 classifier.coef_ = unseen_image_embeddings[:,:-1]
-classifier.intercept_ = unseen_image_embeddings[:,-1] * 100
+classifier.intercept_ = unseen_image_embeddings[:,-1]
 print (f'Non-generalized unseen accuracy: {accuracy(classifier, unseen_features, unseen_labels):.3f}')
